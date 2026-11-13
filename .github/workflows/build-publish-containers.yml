@@ -1,0 +1,104 @@
+name: Build and Publish Container
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        description: 'Service name (api or frontend)'
+        required: true
+        type: string
+      context_path:
+        description: 'Build context path'
+        required: true
+        type: string
+      dockerfile_path:
+        description: 'Dockerfile path'
+        required: true
+        type: string
+      registry_url:
+        description: 'Container registry URL'
+        required: false
+        type: string
+        default: 'ghcr.io'
+    outputs:
+      image:
+        description: 'Built image tag'
+        value: ${{ jobs.build.outputs.image }}
+      digest:
+        description: 'Built image digest'
+        value: ${{ jobs.build.outputs.digest }}
+      name:
+        description: 'The images name in the registry.'
+        value: ${{ jobs.build.outputs.name }}
+
+jobs:
+  build:
+    name: Build ${{ inputs.service_name }} Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
+      digest: ${{ steps.build.outputs.digest }}
+      name: ${{ github.event.repository.name }}-${{ inputs.service_name }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry_url }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.registry_url }}/${{ github.repository }}-${{ inputs.service_name }}
+          tags: |
+            type=sha,prefix={{branch}}-,enable=${{ github.event_name != 'pull_request' }}
+            type=sha,prefix=pr-,enable=${{ github.event_name == 'pull_request' }}
+
+      - name: Build and push ${{ inputs.service_name }} image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context_path }}
+          file: ${{ inputs.dockerfile_path }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ inputs.registry_url }}/${{ github.repository }}-${{ inputs.service_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Export SBOM in SPDX
+        run: |
+          docker buildx imagetools inspect ${{ steps.meta.outputs.tags }} --format "{{ json .SBOM.SPDX }}" >> ${{ inputs.service_name }}-sbom.json
+
+      - name: Generate SBOM Attestation
+        uses: actions/attest-sbom@v3
+        with:
+          subject-name: ${{ inputs.registry_url }}/${{ github.repository }}-${{ inputs.service_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: '${{ inputs.service_name }}-sbom.json'
+          push-to-registry: true

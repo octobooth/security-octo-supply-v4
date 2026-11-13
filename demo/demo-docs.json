@@ -29,7 +29,7 @@
       "area": "area.actions.workflows",
       "areaName": "GitHub Actions",
       "file": "demo/capabilities/actions.md",
-      "description": "Centrally-defined workflows referenced by many repositories to standardize CI/CD.",
+      "description": "Reusable workflows standardize CI/CD. This template keeps a local copy of the central build workflow so both services can call it without cross-repository access requirements.",
       "valueProposal": [
         "Streamline common CI/CD tasks across an org or enterprise.",
         "Enforce consistency, reduce duplication, and improve maintainability across many projects.",
@@ -1974,7 +1974,7 @@
     {
       "id": "content.build-and-publish-workflow",
       "name": "Build and publish workflow",
-      "what": "`.github/workflows/build-and-publish.yml` calling the central `build-publish-containers.yml`.",
+      "what": "`.github/workflows/build-and-publish.yml` calling the local `.github/workflows/build-publish-containers.yml` at the caller's commit.",
       "showcases": [
         "capability.reusable-workflows"
       ],
@@ -1984,7 +1984,7 @@
     {
       "id": "content.dependency-review-workflow",
       "name": "Dependency review workflow",
-      "what": "Required workflow defined centrally in the [`od-octocat-supply-workflows`](https://github.com/octodemo-framework/content_octocat_supply_workflows) repository at `.github/workflows/dependency-review.yml`.",
+      "what": "Workflow defined centrally in [octobooth/octocat-supply-reusable-workflows](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml); enforcement requires a separately configured destination ruleset.",
       "showcases": [
         "capability.dependency-review",
         "capability.required-workflows"
@@ -2199,7 +2199,7 @@
     {
       "id": "content.workflows-repo",
       "name": "Reusable workflows repository",
-      "what": "Central repository hosting shared workflows: `build-publish-containers.yml` (reusable build/publish + SLSA provenance) and `dependency-review.yml` (required workflow enforced via org ruleset). Also serves as the attestation signer repo verified by `demo/resources/verify-attestation.sh`.",
+      "what": "[Central workflow source](https://github.com/octobooth/octocat-supply-reusable-workflows) for `build-publish-containers.yml` (copied into this template) and `dependency-review.yml` (requires a destination ruleset for enforcement). Build attestations are signed by this repository's local reusable workflow, not the central repository; `demo/resources/verify-attestation.sh` verifies that local signer.",
       "showcases": [
         "capability.reusable-workflows",
         "capability.required-workflows",
@@ -2243,7 +2243,7 @@
       "contents": [
         "content.dependency-review-workflow"
       ],
-      "content": "1. Navigate to the pull request `Feature: Add ToS Download` in the demo repository.\n2. Scroll down to the status checks. Point out the **Dependency Review** required workflow — enforced by the [OD OctoCAT Supply Ruleset](https://github.com/organizations/octobooth-demos/settings/rules) (see [governance.md](./governance.md) for more).\n3. Navigate to the central workflows repository to show the required workflow definition: https://github.com/octobooth-demos/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml"
+      "content": "1. Navigate to the pull request `Feature: Add ToS Download` in the demo repository.\n2. Scroll down to the status checks. Before presenting **Dependency Review** as required, confirm enforcement in the destination [organization rulesets](https://github.com/organizations/octobooth/settings/rules) (see [governance.md](./governance.md)); source rulesets are not copied by repository migration.\n3. Open the central [Dependency Review workflow definition](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml)."
     },
     {
       "id": "walkthrough.actions.reusable-workflows",
@@ -2256,7 +2256,7 @@
       "contents": [
         "content.build-and-publish-workflow"
       ],
-      "content": "1. In the demo repository, navigate to the **Actions** tab.\n2. Select the [Build and Publish](../../.github/workflows/build-and-publish.yml) workflow from the left sidebar.\n3. Review the workflow file to see how it references the reusable workflow from the central repository.\n4. Navigate to the central repository to view the workflow: https://github.com/octobooth-demos/octocat-supply-reusable-workflows/blob/main/.github/workflows/build-publish-containers.yml"
+      "content": "1. In the demo repository, navigate to the **Actions** tab.\n2. Select the [Build and Publish](../../.github/workflows/build-and-publish.yml) workflow from the left sidebar.\n3. Review the workflow file to see how both services call the same local reusable workflow.\n4. Open the [local build/publish workflow](../../.github/workflows/build-publish-containers.yml). It is copied from the [central workflow repository](https://github.com/octobooth/octocat-supply-reusable-workflows), but runs from this repository at the caller's commit, including in personal-owner copies."
     },
     {
       "id": "walkthrough.actions.attestations-create",
@@ -2269,7 +2269,7 @@
       "contents": [
         "content.attestation-workflow"
       ],
-      "content": "1. In the demo repository, navigate to the **Actions** tab and select **Attestations**.\n  ![Screenshot showing the Actions tab with Attestations menu item highlighted in the left sidebar](./images/attestation-navigation.png)\n2. You will find at least four attestations (two each for the frontend and API). Focus on the API attestations and their distinct `predicate-types`:\n\n    ![Screenshot displaying a list of artifact attestations showing different predicate types for frontend and API containers](./images/attestation-types.png)\n\n    1. `https://spdx.dev/Document/v2.3`: Confirms an SBOM is attached. (Note: This does not validate the SBOM's contents).\n    2. `https://slsa.dev/provenance/v1`: Verifies the artifact's origin, confirming it was built by a specific reusable workflow and originated from your demo repository.\n3. Return to the [Build and Publish](../../.github/workflows/build-and-publish.yml) workflow (accessible via the `Workflow File` link on the attestation page).\n4. Point out that this workflow uses a reusable workflow to generate attestations, and navigate to it: https://github.com/octobooth-demos/octocat-supply-reusable-workflows/blob/main/.github/workflows/build-publish-containers.yml\n5. In the reusable workflow, scroll to the bottom to show the simple, built-in actions that generate the attestations.\n  ![Screenshot of workflow YAML file showing the steps that generate SBOM and SLSA attestations using GitHub Actions](./images/attestation-workflow-file.png)"
+      "content": "1. In the demo repository, navigate to the **Actions** tab and select **Attestations**.\n  ![Screenshot showing the Actions tab with Attestations menu item highlighted in the left sidebar](./images/attestation-navigation.png)\n2. You will find at least four attestations (two each for the frontend and API). Focus on the API attestations and their distinct `predicate-types`:\n\n    ![Screenshot displaying a list of artifact attestations showing different predicate types for frontend and API containers](./images/attestation-types.png)\n\n    1. `https://spdx.dev/Document/v2.3`: Confirms an SBOM is attached. (Note: This does not validate the SBOM's contents).\n    2. `https://slsa.dev/provenance/v1`: Verifies the artifact's origin, confirming it was built by a specific reusable workflow and originated from your demo repository.\n3. Return to the [Build and Publish](../../.github/workflows/build-and-publish.yml) workflow (accessible via the `Workflow File` link on the attestation page).\n4. Open the [local reusable workflow](../../.github/workflows/build-publish-containers.yml) that generates attestations. Verification pins the signer to this repository's workflow path.\n5. In the reusable workflow, scroll to the bottom to show the simple, built-in actions that generate the attestations.\n  ![Screenshot of workflow YAML file showing the steps that generate SBOM and SLSA attestations using GitHub Actions](./images/attestation-workflow-file.png)"
     },
     {
       "id": "walkthrough.actions.attestations-verify",
@@ -2295,7 +2295,7 @@
       "contents": [
         "content.deploy-workflow"
       ],
-      "content": "1. After repository creation, wait for the deployment action to complete.\n2. Navigate to the [organization's Linked artifacts page](https://github.com/orgs/octobooth-demos/artifacts).\n\n    ![Screenshot showing the Linked Artifacts page in a GitHub organization](./images/linked-artifacts-overview.png)\n\n3. In the linked artifacts, search for the `api` artifact of your repository:\n\n    ```txt\n    octobooth-demos/-api\n    ```\n\n4. Review the information on this screen:\n    ![Screenshot showing the details page of Linked Artifacts](./images/linked-artifacts-details.png)\n    1. **Source Repository:** This links this metadata record to the actual source repository. In the demo's case, this is automatically done through the provenance attestation created during the build process (see the [Artifact Attestations](#artifact-attestations) section above).\n    2. **Attestations:** A list of all associated attestations is also provided at the bottom of the page.\n    3. **Storage Record:** This links the artifact itself to this metadata record.\n    4. **Deployments:** This is the main piece. Here, metadata about the deployment of the artifact in production can be added, such as the cluster name, risk metadata (like `internet-exposed`), physical location, etc.\n\n5. Go to the `Organization's Security Page` -> `Alerts (Section Header)` -> `Code Scanning`.\n6. Apply the two filters `runtime-risk:internet-exposed` and `severity:high` (optionally, if there are too many results in your demo organization, add a filter for the repository name `repo:octobooth-demos/`).\n7. You should see the alert `SQL query built from user-controlled sources` in the list with the `internet-exposed` runtime risk filter applied.\n    1. (optional): Use this direct link to the filtered view: <https://github.com/orgs/octobooth-demos/security/alerts/code-scanning?query=is%3Aclosed+runtime-risk%3Ainternet-exposed+severity%3Ahigh++repo%3A>"
+      "content": "1. After repository creation, wait for the deployment action to complete.\n2. Navigate to the [organization's Linked artifacts page](https://github.com/orgs/octobooth/artifacts).\n\n    ![Screenshot showing the Linked Artifacts page in a GitHub organization](./images/linked-artifacts-overview.png)\n\n3. In the linked artifacts, search for the `api` artifact of your repository:\n\n    ```txt\n    octobooth/<demo-repository>-api\n    ```\n\n4. Review the information on this screen:\n    ![Screenshot showing the details page of Linked Artifacts](./images/linked-artifacts-details.png)\n    1. **Source Repository:** This links this metadata record to the actual source repository. In the demo's case, this is automatically done through the provenance attestation created during the build process (see the [Artifact Attestations](#artifact-attestations) section above).\n    2. **Attestations:** A list of all associated attestations is also provided at the bottom of the page.\n    3. **Storage Record:** This links the artifact itself to this metadata record.\n    4. **Deployments:** This is the main piece. Here, metadata about the deployment of the artifact in production can be added, such as the cluster name, risk metadata (like `internet-exposed`), physical location, etc.\n\n5. Go to the `Organization's Security Page` -> `Alerts (Section Header)` -> `Code Scanning`.\n6. Apply the two filters `runtime-risk:internet-exposed` and `severity:high` (optionally, if there are too many results in your demo organization, add a filter for the repository name `repo:octobooth/<demo-repository>`).\n7. You should see the alert `SQL query built from user-controlled sources` in the list with the `internet-exposed` runtime risk filter applied.\n    1. (optional): Use the [filtered code-scanning view](https://github.com/orgs/octobooth/security/alerts/code-scanning?query=is%3Aclosed+runtime-risk%3Ainternet-exposed+severity%3Ahigh++repo%3A)."
     },
     {
       "id": "walkthrough.code-quality.insights-repo",
@@ -3384,7 +3384,7 @@
         "capability.custom-properties"
       ],
       "contents": [],
-      "content": "1. Protecting the main branch from deletions, force pushes etc.\n2. Requiring a pull-request\n3. Requiring a CodeQL Scan\n4. Requiring the required workflow [Dependency Review](https://github.com/octobooth-demos/octocat-supply-reusable-workflows)"
+      "content": "Before this demo, inspect the destination [organization rulesets](https://github.com/organizations/octobooth/settings/rules). Repository migration does not copy source rulesets or custom-property assignments. In a separately prepared demo, the expected ruleset can illustrate:\n\n1. Protecting the main branch from deletions, force pushes etc.\n2. Requiring a pull-request\n3. Requiring a CodeQL Scan\n4. Requiring the required workflow [Dependency Review](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml)\n\nThe source demo targeted repositories through the custom property `od_octocat_supply_risk_tier` with a value of `high`. Confirm the destination's actual targeting before presenting; this migration does not change policy.\n\nIn the demo, there will be a pre-created pr `Feature: Add ToS Download` where some of the rules will be violated. You can demo the effect of rulesets on this PR by showing how the violations are flagged and what the implications are for the development process."
     },
     {
       "id": "walkthrough.governance.ai-controls-github-agents",

@@ -124,7 +124,7 @@ If you create your own copy of this repository, here's what to expect from the i
 
 - **CI and CodeQL** run automatically on pushes and pull requests.
 - **CodeQL results** require GitHub Code Security on private repositories. If your organization enables CodeQL **default setup**, it conflicts with the template's `codeql-advanced.yml` workflow — disable one or the other.
-- **Build and Publish** calls reusable workflows from [`octobooth-demos/octocat-supply-reusable-workflows`](https://github.com/octobooth-demos/octocat-supply-reusable-workflows), pinned to the `v1` tag.
+- **Build and Publish** calls the [local reusable workflow](.github/workflows/build-publish-containers.yml), copied from [octobooth/octocat-supply-reusable-workflows](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/a7c973e5b4b3ecbf5a287201d81a93bd20acd2e4/.github/workflows/build-publish-containers.yml). Both services use the caller's commit without requiring access to another repository or a `v1` tag. Attestation verification requires this repository and its local workflow as the signer.
 - **Agentic workflows** (daily activity summary on a schedule, build-failure analysis, issue triage, PR doc/tests check) need GitHub Copilot and [gh-aw](https://github.com/github/gh-aw) set up in your own account; without that they fail harmlessly.
 - **Deploy to Azure** is dispatched automatically after Build and Publish succeeds on `main`. It only verifies the container image attestations — the Azure deployment step is disabled in this template, so no Azure setup is required. See [docs/deployment.md](docs/deployment.md) if you want to add a real deployment.
 
@@ -149,9 +149,11 @@ Database defaults and env vars:
 
 ## 🛡️ For maintainers
 
-This template intentionally contains vulnerable code, planted secrets (such as `api/ca.key` and the invalidated tokens in the history of `api/.env.example`), and code-quality issues that the booth security demos depend on. They should not be fixed or removed in this template, and Dependabot, autofix, or other pull requests that would remove them should be closed rather than merged.
+This template intentionally contains vulnerable code, demo fixture files such as `api/ca.key`, and code-quality issues that the booth security demos depend on. They should not be fixed or removed in this template, and Dependabot, autofix, or other pull requests that would remove them should be closed rather than merged. This destination was populated from current content with a single-root baseline; historical fake-token fixtures are absent and must not be restored as part of this migration.
 
-Demo repositories are created from this template by [octobooth-demos/repo-setup-scripts](https://github.com/octobooth-demos/repo-setup-scripts#readme) (see its [release process](https://github.com/octobooth-demos/repo-setup-scripts/blob/main/docs/releasing.md)). Templates aren't versioned, so changes merged here reach new demos immediately; test a demo run before merging.
+Demo repositories are created from this template by [octobooth/repo-setup-scripts](https://github.com/octobooth/repo-setup-scripts#readme) (see its [release process](https://github.com/octobooth/repo-setup-scripts/blob/main/docs/releasing.md)). Templates aren't versioned, so changes merged here reach new demos immediately; test a demo run before merging.
+
+During migration, Actions remain disabled on this public template; companion repositories may be internal. Workflow behavior described above applies only after an authorized enablement; no destination releases, tags, build artifacts, attestations, or deployments are implied. Run the offline attestation checks with `python3 .github/actions/verify-container-attestations/test_verification.py` (requires Bash and jq).
 
 Fixing vulnerabilities in a demo repository created from this template is expected — that's the demo.
 

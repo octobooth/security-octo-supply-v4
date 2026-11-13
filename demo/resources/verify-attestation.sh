@@ -276,11 +276,11 @@ verify_attestation() {
     log_info "Verifying attestation for: $container_url"
     log_info "Repository: $repo_full"
     log_info "GitHub Hostname: $github_hostname"
-    log_info "Predicate type: https://spdx.dev/Document/v2.3"
+    log_info "Predicate type: https://slsa.dev/provenance/v1"
     
     echo
     log_info "Running attestation verification..."
-    echo "Command: gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$github_org/od-octocat-supply-workflows\" --hostname \"$github_hostname\""
+    echo "Command: gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$repo_full\" --signer-workflow \"$repo_full/.github/workflows/build-publish-containers.yml\" --hostname \"$github_hostname\""
     
     # Visual separator before results
     echo
@@ -289,7 +289,7 @@ verify_attestation() {
     echo "═══════════════════════════════════════════════════════════════════════════════"
     echo
     
-    if gh attestation verify "$container_url" -R "$repo_full" --signer-repo "$github_org/od-octocat-supply-workflows" --hostname "$github_hostname"; then
+    if gh attestation verify "$container_url" -R "$repo_full" --signer-repo "$repo_full" --signer-workflow "$repo_full/.github/workflows/build-publish-containers.yml" --hostname "$github_hostname"; then
         echo
         echo "═══════════════════════════════════════════════════════════════════════════════"
         echo -e "                              ${GREEN}✓ VERIFICATION SUCCESSFUL${NC}"
@@ -299,14 +299,14 @@ verify_attestation() {
         # Updated success details
         echo -e "${GREEN}✓${NC} Verified attestation with predicate-type \"https://slsa.dev/provenance/v1\" exists"
         echo -e "${GREEN}✓${NC} Verified source repository matches this repository: $repo_full"
-        echo -e "${GREEN}✓${NC} Verified artifact was built using the reusable workflow: $github_org/od-octocat-supply-workflows"
+        echo -e "${GREEN}✓${NC} Verified artifact was built using the local reusable workflow: $repo_full/.github/workflows/build-publish-containers.yml"
         echo "═══════════════════════════════════════════════════════════════════════════════"
         echo
         echo "💡 To see the full attestation details in JSON format, run:"
-        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$github_org/od-octocat-supply-workflows\" --hostname \"$github_hostname\" --format json"
+        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$repo_full\" --signer-workflow \"$repo_full/.github/workflows/build-publish-containers.yml\" --hostname \"$github_hostname\" --format json"
 
         echo "💡 To see the SBOM Attestation, run:"
-        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$github_org/od-octocat-supply-workflows\" --hostname \"$github_hostname\" --predicate-type https://spdx.dev/Document/v2.3"
+        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$repo_full\" --signer-workflow \"$repo_full/.github/workflows/build-publish-containers.yml\" --hostname \"$github_hostname\" --predicate-type https://spdx.dev/Document/v2.3"
     else
 
         echo
@@ -319,7 +319,7 @@ verify_attestation() {
         echo "═══════════════════════════════════════════════════════════════════════════════"
         echo
         echo "💡 To see detailed error information, run:"
-        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$github_org/od-octocat-supply-workflows\" --hostname \"$github_hostname\" --format json"
+        echo "   gh attestation verify \"$container_url\" -R \"$repo_full\" --signer-repo \"$repo_full\" --signer-workflow \"$repo_full/.github/workflows/build-publish-containers.yml\" --hostname \"$github_hostname\" --format json"
         exit 1
     fi
 }

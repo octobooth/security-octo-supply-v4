@@ -31,25 +31,27 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         VERIFICATION_TYPE: "🏗️ build provenance"
-        GH_COMMAND: 'gh attestation verify --hostname ${{ steps.set-hostname.outputs.hostname }} -o octobooth-demos --signer-workflow octobooth-demos/od-octocat-supply-workflows/.github/workflows/build-publish-containers.yml "oci://CONTAINER_PLACEHOLDER"'
+        GH_HOSTNAME: ${{ steps.set-hostname.outputs.hostname }}
+        ATTESTATION_REPOSITORY: ${{ inputs.repository }}
+        CONTAINERS: ${{ inputs.containers }}
       run: |
         echo "$VERIFICATION_TYPE verification started..."
-        containers='${{ inputs.containers }}'
+        containers=$(jq -er 'if type == "array" and length > 0 and all(.[]; type == "string" and length > 0) then .[] else error("Expected nonempty container array") end' <<< "$CONTAINERS")
         all_passed=true
 
-        echo "$containers" | jq -r '.[]' | while read -r container; do
+        while IFS= read -r container; do
           echo ""
           echo "📦 Verifying $VERIFICATION_TYPE for: $container"
-          actual_command="${GH_COMMAND/CONTAINER_PLACEHOLDER/$container}"
-          echo "Command: $actual_command"
-          
-          if eval "$actual_command"; then
-            echo "✅ ${VERIFICATION_TYPE^} verified for $container"
+          if gh attestation verify "oci://$container" \
+            --hostname "$GH_HOSTNAME" \
+            --repo "$ATTESTATION_REPOSITORY" \
+            --signer-workflow "$ATTESTATION_REPOSITORY/.github/workflows/build-publish-containers.yml"; then
+            echo "✅ $VERIFICATION_TYPE verified for $container"
           else
-            echo "❌ ${VERIFICATION_TYPE^} verification failed for $container"
+            echo "❌ $VERIFICATION_TYPE verification failed for $container"
             all_passed=false
           fi
-        done
+        done <<< "$containers"
 
         echo "VERIFICATION_PASSED=$all_passed" >> $GITHUB_OUTPUT
         echo ""
@@ -61,25 +63,28 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh-token }}
         VERIFICATION_TYPE: "📋 SBOM"
-        GH_COMMAND: 'gh attestation verify --hostname ${{ steps.set-hostname.outputs.hostname }} "oci://CONTAINER_PLACEHOLDER" -o octobooth-demos --predicate-type https://spdx.dev/Document'
+        GH_HOSTNAME: ${{ steps.set-hostname.outputs.hostname }}
+        ATTESTATION_REPOSITORY: ${{ inputs.repository }}
+        CONTAINERS: ${{ inputs.containers }}
       run: |
         echo "$VERIFICATION_TYPE verification started..."
-        containers='${{ inputs.containers }}'
+        containers=$(jq -er 'if type == "array" and length > 0 and all(.[]; type == "string" and length > 0) then .[] else error("Expected nonempty container array") end' <<< "$CONTAINERS")
         all_passed=true
 
-        echo "$containers" | jq -r '.[]' | while read -r container; do
+        while IFS= read -r container; do
           echo ""
           echo "📦 Verifying $VERIFICATION_TYPE for: $container"
-          actual_command="${GH_COMMAND/CONTAINER_PLACEHOLDER/$container}"
-          echo "Command: $actual_command"
-          
-          if eval "$actual_command"; then
-            echo "✅ ${VERIFICATION_TYPE^} verified for $container"
+          if gh attestation verify "oci://$container" \
+            --hostname "$GH_HOSTNAME" \
+            --repo "$ATTESTATION_REPOSITORY" \
+            --signer-workflow "$ATTESTATION_REPOSITORY/.github/workflows/build-publish-containers.yml" \
+            --predicate-type https://spdx.dev/Document/v2.3; then
+            echo "✅ $VERIFICATION_TYPE verified for $container"
           else
-            echo "❌ ${VERIFICATION_TYPE^} verification failed for $container"
+            echo "❌ $VERIFICATION_TYPE verification failed for $container"
             all_passed=false
           fi
-        done
+        done <<< "$containers"
 
         echo "VERIFICATION_PASSED=$all_passed" >> $GITHUB_OUTPUT
         echo ""
@@ -100,7 +105,7 @@ runs:
 
           const allPassed = provenancePassed && sbomPassed;
           const hostname = '${{ steps.set-hostname.outputs.hostname }}';
-          const workflowUrl = `https://${hostname}/${{ github.repository }}/blob/main/.github/workflows/build-publish-containers.yml`;
+          const workflowUrl = `https://${hostname}/${{ inputs.repository }}/blob/main/.github/workflows/build-publish-containers.yml`;
 
           // Build summary report
           let summary = `# 🔍 Container Attestation Verification Report

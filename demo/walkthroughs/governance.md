@@ -5,14 +5,14 @@
 - **id**: walkthrough.governance.rulesets-custom-properties
 - **Capabilities:** [Repository Rulesets](../capabilities/governance.md#repository-rulesets) (`capability.repository-rulesets`), [Custom Properties](../capabilities/governance.md#custom-properties) (`capability.custom-properties`)
 
-The repository has an organization ruleset [OD OctoCAT Supply Ruleset](https://github.com/organizations/octobooth-demos/settings/rules) applied, setting up a few of the standard rules like:
+Before this demo, inspect the destination [organization rulesets](https://github.com/organizations/octobooth/settings/rules). Repository migration does not copy source rulesets or custom-property assignments. In a separately prepared demo, the expected ruleset can illustrate:
 
 1. Protecting the main branch from deletions, force pushes etc.
 2. Requiring a pull-request
 3. Requiring a CodeQL Scan
-4. Requiring the required workflow [Dependency Review](https://github.com/octobooth-demos/octocat-supply-reusable-workflows)
+4. Requiring the required workflow [Dependency Review](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml)
 
-The ruleset is applied through the custom property `od_octocat_supply_risk_tier` with a value of `high`. This custom property is also applied to the demo repositories.
+The source demo targeted repositories through the custom property `od_octocat_supply_risk_tier` with a value of `high`. Confirm the destination's actual targeting before presenting; this migration does not change policy.
 
 In the demo, there will be a pre-created pr `Feature: Add ToS Download` where some of the rules will be violated. You can demo the effect of rulesets on this PR by showing how the violations are flagged and what the implications are for the development process.
 

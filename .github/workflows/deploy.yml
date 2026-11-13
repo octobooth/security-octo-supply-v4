@@ -62,7 +62,8 @@ jobs:
           echo "   Digest: ${{ inputs.api_digest }}"
           gh attestation verify \
             "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.api_name }}@${{ inputs.api_digest }}" \
-            --owner "${{ github.repository_owner }}"
+            --repo "${{ github.repository }}" \
+            --signer-workflow "${{ github.repository }}/.github/workflows/build-publish-containers.yml"
           echo "✅ API image attestation verified"
 
       - name: Verify Frontend image attestation
@@ -74,7 +75,8 @@ jobs:
           echo "   Digest: ${{ inputs.frontend_digest }}"
           gh attestation verify \
             "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.frontend_name }}@${{ inputs.frontend_digest }}" \
-            --owner "${{ github.repository_owner }}"
+            --repo "${{ github.repository }}" \
+            --signer-workflow "${{ github.repository }}/.github/workflows/build-publish-containers.yml"
           echo "✅ Frontend image attestation verified"
 
   deploy:

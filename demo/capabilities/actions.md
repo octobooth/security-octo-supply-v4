@@ -20,7 +20,7 @@ Organization/enterprise-enforced workflows that must pass on targeted repositori
 ### Prestaged content
 
 - `content.octocat-ruleset` — "OD OctoCAT Supply Ruleset".
-- `content.dependency-review-workflow` — Required workflow defined centrally in the [`od-octocat-supply-workflows`](https://github.com/octodemo-framework/content_octocat_supply_workflows) repository at `.github/workflows/dependency-review.yml`.
+- `content.dependency-review-workflow` — Workflow defined centrally in [octobooth/octocat-supply-reusable-workflows](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml); enforcement requires a separately configured destination ruleset.
 - `content.tos-download-pr` — PR that the required check runs on.
 
 ### Shown in walkthroughs
@@ -32,7 +32,7 @@ Organization/enterprise-enforced workflows that must pass on targeted repositori
 
 - **id**: capability.reusable-workflows
 
-Centrally-defined workflows referenced by many repositories to standardize CI/CD.
+Reusable workflows standardize CI/CD. This template keeps a local copy of the central build workflow so both services can call it without cross-repository access requirements.
 
 ### Value Proposal
 
@@ -42,7 +42,7 @@ Centrally-defined workflows referenced by many repositories to standardize CI/CD
 
 ### Prestaged content
 
-- `content.build-and-publish-workflow` — `.github/workflows/build-and-publish.yml` calling the central `build-publish-containers.yml`.
+- `content.build-and-publish-workflow` — `.github/workflows/build-and-publish.yml` calling the local `.github/workflows/build-publish-containers.yml` at the caller's commit.
 
 ### Shown in walkthroughs
 

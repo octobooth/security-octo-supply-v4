@@ -468,14 +468,14 @@ Each item has a `content.*` id and **showcases** one or more [capabilities](./ca
 
 - **id**: `content.build-and-publish-workflow`
 - **type**: actions-workflow
-- **what**: `.github/workflows/build-and-publish.yml` calling the central `build-publish-containers.yml`.
+- **what**: `.github/workflows/build-and-publish.yml` calling the local `.github/workflows/build-publish-containers.yml` at the caller's commit.
 - **showcases**: [`capability.reusable-workflows`](./capabilities/actions.md)
 
 ### Dependency review workflow
 
 - **id**: `content.dependency-review-workflow`
 - **type**: actions-workflow
-- **what**: Required workflow defined centrally in the [`od-octocat-supply-workflows`](https://github.com/octodemo-framework/content_octocat_supply_workflows) repository at `.github/workflows/dependency-review.yml`.
+- **what**: Workflow defined centrally in [octobooth/octocat-supply-reusable-workflows](https://github.com/octobooth/octocat-supply-reusable-workflows/blob/main/.github/workflows/dependency-review.yml); enforcement requires a separately configured destination ruleset.
 - **showcases**: [`capability.dependency-review`](./capabilities/dependabot.md), [`capability.required-workflows`](./capabilities/actions.md)
 
 ### Deploy workflow
@@ -640,8 +640,8 @@ Each item has a `content.*` id and **showcases** one or more [capabilities](./ca
 
 - **id**: `content.workflows-repo`
 - **type**: repository
-- **repo-name**: `od-octocat-supply-workflows`
-- **what**: Central repository hosting shared workflows: `build-publish-containers.yml` (reusable build/publish + SLSA provenance) and `dependency-review.yml` (required workflow enforced via org ruleset). Also serves as the attestation signer repo verified by `demo/resources/verify-attestation.sh`.
+- **repo-name**: `octocat-supply-reusable-workflows`
+- **what**: [Central workflow source](https://github.com/octobooth/octocat-supply-reusable-workflows) for `build-publish-containers.yml` (copied into this template) and `dependency-review.yml` (requires a destination ruleset for enforcement). Build attestations are signed by this repository's local reusable workflow, not the central repository; `demo/resources/verify-attestation.sh` verifies that local signer.
 - **showcases**: [`capability.reusable-workflows`](./capabilities/actions.md), [`capability.required-workflows`](./capabilities/actions.md), [`capability.artifact-attestations`](./capabilities/governance.md), [`capability.repository-rulesets`](./capabilities/governance.md)
 
 ### Compliance docs repository
