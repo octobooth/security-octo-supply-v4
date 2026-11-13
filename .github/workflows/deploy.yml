@@ -1,0 +1,89 @@
+name: 🚢 Deploy to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_image:
+        description: 'API Container Image'
+        required: true
+        type: string
+      api_digest:
+        description: 'API Container Digest (sha256:...)'
+        required: true
+        type: string
+      api_name:
+        description: 'API Package Name'
+        required: true
+        type: string
+      frontend_image:
+        description: 'Frontend Container Image'
+        required: true
+        type: string
+      frontend_digest:
+        description: 'Frontend Container Digest (sha256:...)'
+        required: true
+        type: string
+      frontend_name:
+        description: 'Frontend Package Name'
+        required: true
+        type: string
+
+
+env:
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  RESOURCE_GROUP_NAME: ${{ vars.AZURE_RESOURCE_GROUP_NAME }}
+  DEMO_INSTANCE_NAME: octocat_supply
+  DEMO_SLUG: octocat_supply
+  GITHUB_HOSTNAME: "github.com"
+  REGISTRY_HOSTNAME: "ghcr.io"
+  REGISTRY_URL: "https://ghcr.io/${{ github.repository_owner }}"
+  ARTIFACT_URL: "https://github.com/${{ github.repository }}/pkgs/container"
+  CONTAINER_APP_ENVIRONMENT_NAME: 
+  CONTAINER_APP_ENVIRONMENT_ID: 
+
+
+jobs:
+  verify-attestations:
+    name: Verify Artifact Attestations
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: read
+      packages: read
+    steps:
+      - name: Verify API image attestation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Verifying attestation for API image..."
+          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.api_name }}"
+          echo "   Digest: ${{ inputs.api_digest }}"
+          gh attestation verify \
+            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.api_name }}@${{ inputs.api_digest }}" \
+            --owner "${{ github.repository_owner }}"
+          echo "✅ API image attestation verified"
+
+      - name: Verify Frontend image attestation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔍 Verifying attestation for Frontend image..."
+          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.frontend_name }}"
+          echo "   Digest: ${{ inputs.frontend_digest }}"
+          gh attestation verify \
+            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.frontend_name }}@${{ inputs.frontend_digest }}" \
+            --owner "${{ github.repository_owner }}"
+          echo "✅ Frontend image attestation verified"
+
+  deploy:
+    name: Azure deployment disabled
+    runs-on: ubuntu-latest
+    needs: [verify-attestations]
+
+    steps:
+      - name: Deployment disabled
+        run: echo "Azure deployment was disabled in demo creation"
+        shell: bash
+
