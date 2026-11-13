@@ -53,15 +53,22 @@ jobs:
       attestations: read
       packages: read
     steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_HOSTNAME }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Verify API image attestation
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🔍 Verifying attestation for API image..."
-          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.api_name }}"
+          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository_owner }}/${{ inputs.api_name }}"
           echo "   Digest: ${{ inputs.api_digest }}"
           gh attestation verify \
-            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.api_name }}@${{ inputs.api_digest }}" \
+            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository_owner }}/${{ inputs.api_name }}@${{ inputs.api_digest }}" \
             --repo "${{ github.repository }}" \
             --signer-workflow "${{ github.repository }}/.github/workflows/build-publish-containers.yml"
           echo "✅ API image attestation verified"
@@ -71,10 +78,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🔍 Verifying attestation for Frontend image..."
-          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.frontend_name }}"
+          echo "   Image: ${{ env.REGISTRY_HOSTNAME }}/${{ github.repository_owner }}/${{ inputs.frontend_name }}"
           echo "   Digest: ${{ inputs.frontend_digest }}"
           gh attestation verify \
-            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository }}-${{ inputs.frontend_name }}@${{ inputs.frontend_digest }}" \
+            "oci://${{ env.REGISTRY_HOSTNAME }}/${{ github.repository_owner }}/${{ inputs.frontend_name }}@${{ inputs.frontend_digest }}" \
             --repo "${{ github.repository }}" \
             --signer-workflow "${{ github.repository }}/.github/workflows/build-publish-containers.yml"
           echo "✅ Frontend image attestation verified"
@@ -88,4 +95,5 @@ jobs:
       - name: Deployment disabled
         run: echo "Azure deployment was disabled in demo creation"
         shell: bash
+
 
